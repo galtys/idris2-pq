@@ -66,6 +66,17 @@ export
 count : (t : Table) -> (query : Op) -> String
 count t query = #"SELECT count(*) FROM \#{t.name} WHERE \#{opToSQL query};"#
 
+export
+getJoinSQL :  (t1        : Table)
+       ->     (t2       : Table)
+       -> (cs       : List Column)
+       -> {auto 0 _ : Elems cs ((columns t1)++(columns t2)) }
+       -> (query    : Op)
+       -> String
+getJoinSQL t1 t2 cs query =
+  let cols = fastConcat $ intersperse ", " $ [ (table_name x)++"."++(name x) | x <- cs ]
+   in #"SELECT \#{cols} FROM \#{t1.name},\#{t2.name} WHERE \#{opToSQL query};"#
+
 --------------------------------------------------------------------------------
 --          IO
 --------------------------------------------------------------------------------
@@ -87,6 +98,7 @@ insert1 :  HasIO io
         -> PutRow (columns t)
         -> io ()
 insert1 c t row = insert c t [row]
+
 
 names : (cs : List Column) -> NP (K String) (GetTypes cs)
 names []        = []
@@ -111,6 +123,20 @@ get :  HasIO io
     -> io (List $ GetRow cs)
 get c t cs query = do
   res <- exec c (getSQL t cs query) TUPLES_OK
+  getRows (names cs) (readers cs) res
+
+export
+getJoin :  HasIO io
+    => MonadError SQLError io
+    => Connection
+    -> (t1        : Table)
+    -> (t2        : Table)    
+    -> (cs       : List Column)
+    -> {auto 0 _ : Elems cs ((columns t1)++(columns t2))}
+    -> (query : Op)
+    -> io (List $ GetRow cs)
+getJoin c t1 t2 cs query = do
+  res <- exec c (getJoinSQL t1 t2 cs query) TUPLES_OK
   getRows (names cs) (readers cs) res
 
 export
@@ -156,7 +182,7 @@ Name : Column
 Name =  notNull String "name" Text (Just) id ""
 
 Orders : Column
-Orders = notNullDefault Int32 "orders" PQInteger 0 Just (id) 
+Orders = notNullDefault Int32 "orders" PQInteger 0 Just (id) ""
 
 MyTable : Table
 MyTable = MkTable "customer" [Id, Name, Orders]

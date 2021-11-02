@@ -165,14 +165,14 @@ public export
 GetTypeC c = c.idrisType
 
 public export
-primarySerial16 : (0 t : Type) -> String -> (Int16 -> Maybe t) -> Column
-primarySerial16 t n f =
-  MkField t n (NotNull SmallInt) PrimaryKey SmallSerial f id ""
+primarySerial16 : (0 t : Type) -> String -> (Int16 -> Maybe t) -> String -> Column
+primarySerial16 t n f tn =
+  MkField t n (NotNull SmallInt) PrimaryKey SmallSerial f id tn
 
 public export
-primarySerial32 : (0 t : Type) -> String -> (Int32 -> Maybe t) -> Column
-primarySerial32 t n f =
-  MkField t n (NotNull PQInteger) PrimaryKey Serial f id ""
+primarySerial32 : (0 t : Type) -> String -> (Int32 -> Maybe t) -> String -> Column
+primarySerial32 t n f tn=
+  MkField t n (NotNull PQInteger) PrimaryKey Serial f id tn
 
 public export
 primarySerial64 : (0 t : Type) -> String -> (Int64 -> Maybe t) -> String -> Column
@@ -197,9 +197,10 @@ notNullDefault : (0 t : Type)
                -> (dflt : PrimType pq)
                -> (decode : PrimType pq -> Maybe t)
                -> (encode : t -> PrimType pq)
+               -> String
                -> Column
-notNullDefault t n pq dflt dec enc =
-  MkField t n (NotNull pq) Vanilla (Value dflt) dec (map enc) ""
+notNullDefault t n pq dflt dec enc tn=
+  MkField t n (NotNull pq) Vanilla (Value dflt) dec (map enc) tn
 
 public export
 nullable : (0 t : Type)
@@ -279,6 +280,7 @@ data IsNullable : PQType -> Type where
 
 public export
 data Op : Type where
+  JC : (c1 : Column) -> (c2 : Column) -> Op
   (==)  : (c : Column) -> DBType (pqType c) -> {auto 0 _ : Eq (pqType c)} -> Op
   (/=)  : (c : Column) -> DBType (pqType c) -> {auto 0 _ : Eq (pqType c)} -> Op
   (>)   : (c : Column) -> DBType (pqType c) -> {auto 0 _ : Ord (pqType c)} -> Op
@@ -295,6 +297,7 @@ data Op : Type where
 
 export
 opToSQL : Op -> String
+opToSQL (JC c1 c2)  = #"\#{c1.table_name}.\#{c1.name}=\#{c2.table_name}.\#{c2.name}"#
 opToSQL (c == x)      = #"\#{c.name} = \#{encodeDBType c.pqType x}"#
 opToSQL (c /= x)      = #"\#{c.name} <> \#{encodeDBType c.pqType x}"#
 opToSQL (c > x)       = #"\#{c.name} > \#{encodeDBType c.pqType x}"#
