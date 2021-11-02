@@ -141,7 +141,8 @@ record Column where
   deflt      : Default pqType
   fromPQ     : DBType pqType -> Maybe idrisType
   toPQ       : PutType deflt idrisTpe -> PutType deflt (DBType pqType)
-
+  table_name : String
+  
 export
 encodePutType :  {tpe : _}
               -> (deflt : Default tpe)
@@ -157,7 +158,7 @@ encodePutType BigSerial x        = "DEFAULT"
 
 public export
 0 PutTypeC : Column -> Type
-PutTypeC (MkField idrisTpe _ _ _ def _ _) = PutType def idrisTpe
+PutTypeC (MkField idrisTpe _ _ _ def _ _ _) = PutType def idrisTpe
 
 public export
 0 GetTypeC : Column -> Type
@@ -166,17 +167,17 @@ GetTypeC c = c.idrisType
 public export
 primarySerial16 : (0 t : Type) -> String -> (Int16 -> Maybe t) -> Column
 primarySerial16 t n f =
-  MkField t n (NotNull SmallInt) PrimaryKey SmallSerial f id
+  MkField t n (NotNull SmallInt) PrimaryKey SmallSerial f id ""
 
 public export
 primarySerial32 : (0 t : Type) -> String -> (Int32 -> Maybe t) -> Column
 primarySerial32 t n f =
-  MkField t n (NotNull PQInteger) PrimaryKey Serial f id
+  MkField t n (NotNull PQInteger) PrimaryKey Serial f id ""
 
 public export
-primarySerial64 : (0 t : Type) -> String -> (Int64 -> Maybe t) -> Column
-primarySerial64 t n f =
-  MkField t n (NotNull BigInt) PrimaryKey BigSerial f id
+primarySerial64 : (0 t : Type) -> String -> (Int64 -> Maybe t) -> String -> Column
+primarySerial64 t n f tn=
+  MkField t n (NotNull BigInt) PrimaryKey BigSerial f id tn
 
 public export
 notNull : (0 t : Type)
@@ -184,9 +185,10 @@ notNull : (0 t : Type)
         -> (pq : PQPrim)
         -> (decode : PrimType pq -> Maybe t)
         -> (encode : t -> PrimType pq)
+        -> (tn: String)
         -> Column
-notNull t n pq dec enc =
-  MkField t n (NotNull pq) Vanilla NoDefault dec enc
+notNull t n pq dec enc tn=
+  MkField t n (NotNull pq) Vanilla NoDefault dec enc tn
 
 public export
 notNullDefault : (0 t : Type)
@@ -197,7 +199,7 @@ notNullDefault : (0 t : Type)
                -> (encode : t -> PrimType pq)
                -> Column
 notNullDefault t n pq dflt dec enc =
-  MkField t n (NotNull pq) Vanilla (Value dflt) dec (map enc)
+  MkField t n (NotNull pq) Vanilla (Value dflt) dec (map enc) ""
 
 public export
 nullable : (0 t : Type)
@@ -205,13 +207,14 @@ nullable : (0 t : Type)
          -> (pq : PQPrim)
          -> (decode : PrimType pq -> Maybe t)
          -> (encode : t -> PrimType pq)
+         -> (tn: String)         
          -> Column
-nullable t n pq dec enc =
-  MkField (Maybe t) n (Nullable pq) Vanilla Null (maybe (Just Nothing) (map Just . dec)) (map enc)
+nullable t n pq dec enc tn =
+  MkField (Maybe t) n (Nullable pq) Vanilla Null (maybe (Just Nothing) (map Just . dec)) (map enc) tn
 
 export
 columnSchema : Column -> String
-columnSchema (MkField _ name tpe con dflt _ _) =
+columnSchema (MkField _ name tpe con dflt _ _ _) =
   #"\#{name} \#{defaultSchema dflt}\#{constraintSchema con}"#
 
 --------------------------------------------------------------------------------

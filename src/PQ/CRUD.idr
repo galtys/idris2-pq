@@ -37,7 +37,7 @@ GetRow cs = NP I (GetTypes cs)
 
 colVals : (cs : List Column) -> PutRow cs -> List String
 colVals [] [] = []
-colVals (MkField _ n pqTpe _ dflt _ toPQ :: cs) (v :: vs) =
+colVals (MkField _ n pqTpe _ dflt _ toPQ _:: cs) (v :: vs) =
   encodePutType dflt (toPQ v) :: colVals cs vs
 
 colStr : (cs : List Column) -> PutRow cs -> String
@@ -93,7 +93,7 @@ names []        = []
 names (x :: xs) = x.name :: names xs
 
 reader : (c : Column) -> String -> Maybe (GetTypeC c)
-reader (MkField _ _ pqType _ _ fromPQ _) s =
+reader (MkField _ _ pqType _ _ fromPQ _ _) s =
   fromPQ (decodeDBType pqType s)
 
 readers : (cs : List Column) -> NP (\t => String -> Maybe t) (GetTypes cs)
@@ -150,13 +150,13 @@ clearTable c t = delete c t True
 --------------------------------------------------------------------------------
 
 Id : Column
-Id = primarySerial64 Int64 "id" Just
+Id = primarySerial64 Int64 "id" (Just) ""
 
 Name : Column
-Name =  notNull String "name" Text Just id
+Name =  notNull String "name" Text (Just) id ""
 
 Orders : Column
-Orders = notNullDefault Int32 "orders" PQInteger 0 Just id
+Orders = notNullDefault Int32 "orders" PQInteger 0 Just (id) 
 
 MyTable : Table
 MyTable = MkTable "customer" [Id, Name, Orders]

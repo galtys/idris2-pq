@@ -13,28 +13,28 @@ import PQ.Types
 --------------------------------------------------------------------------------
 
 SchemaName : Column
-SchemaName = notNull String "schemaname" Text Just id
+SchemaName = notNull String "schemaname" Text Just id ""
 
 TableName : Column
-TableName = notNull String "tablename" Text Just id
+TableName = notNull String "tablename" Text Just id ""
 
 TableOwner : Column
-TableOwner = notNull String "tableowner" Text Just id
+TableOwner = notNull String "tableowner" Text Just id ""
 
 TableSpace : Column
-TableSpace = nullable String "tablespace" Text Just id
+TableSpace = nullable String "tablespace" Text Just id ""
 
 HasIndexes : Column
-HasIndexes = notNull Bool "hasindexes" Boolean Just id
+HasIndexes = notNull Bool "hasindexes" Boolean Just id ""
 
 HasRules : Column
-HasRules = notNull Bool "hasrules" Boolean Just id
+HasRules = notNull Bool "hasrules" Boolean Just id ""
 
 HasTriggers : Column
-HasTriggers = notNull Bool "hastriggers" Boolean Just id
+HasTriggers = notNull Bool "hastriggers" Boolean Just id ""
 
 RowSecurity : Column
-RowSecurity = notNull Bool "rowsecurity" Boolean Just id
+RowSecurity = notNull Bool "rowsecurity" Boolean Just id ""
 
 Tables : Table
 Tables = MkTable "pg_tables"
@@ -61,22 +61,22 @@ tableExists c t =
 --------------------------------------------------------------------------------
 
 Id : Column
-Id = primarySerial64 Bits32 "user_id" (Just . cast)
+Id = primarySerial64 Bits32 "user_id" (Just . cast) ""
 
 Name : Column
-Name = notNull String "user_name" Text Just id
+Name = notNull String "user_name" Text Just id ""
 
 Password : Column
-Password = notNull String "user_password" Text Just id
+Password = notNull String "user_password" Text Just id ""
 
 Salary : Column
-Salary = notNull Bits32 "user_salary" BigInt (Just . cast) cast
+Salary = notNull Bits32 "user_salary" BigInt (Just . cast) cast ""
 
 Age : Column
-Age = notNull Bits8 "user_age" SmallInt (Just . cast) cast
+Age = notNull Bits8 "user_age" SmallInt (Just . cast) cast ""
 
 Supervisor : Column
-Supervisor = nullable Bits32 "user_supervisor" BigInt (Just . cast) cast
+Supervisor = nullable Bits32 "user_supervisor" BigInt (Just . cast) cast ""
 
 User : Table
 User = MkTable "show_user"
@@ -90,7 +90,7 @@ users = [ [(), "CEO",   "top secret", 15000,  58, Nothing]
         , [(), "Gundi", "123456",      4500,  45, Just 1]
         , [(), "Lars",  "Lars",        3500,  23, Just 2]
         , [(), "Eleni", "I love cats", 9000,  35, Just 1]
-        ] ++ map johnDoe [2000 .. 40000]
+        ] ++ map johnDoe [2000 .. 400000]
   where johnDoe : Bits32 -> UserInsertRow
         johnDoe n = [(), "John Doe", "John Doe", n, 33, Just 3]
 
