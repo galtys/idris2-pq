@@ -70,7 +70,7 @@ export
 getJoinSQL :  (t1        : Table)
        ->     (t2       : Table)
        -> (cs       : List Column)
-       -> {auto 0 _ : Elems cs ((columns t1)++(columns t2)) }
+  --     -> {auto 0 _ : Elems cs ((columns t1)++(columns t2)) }
        -> (query    : Op)
        -> String
 getJoinSQL t1 t2 cs query =
@@ -99,7 +99,7 @@ insert1 :  HasIO io
         -> io ()
 insert1 c t row = insert c t [row]
 
-
+export
 names : (cs : List Column) -> NP (K String) (GetTypes cs)
 names []        = []
 names (x :: xs) = x.name :: names xs
@@ -107,7 +107,7 @@ names (x :: xs) = x.name :: names xs
 reader : (c : Column) -> String -> Maybe (GetTypeC c)
 reader (MkField _ _ pqType _ _ fromPQ _ _) s =
   fromPQ (decodeDBType pqType s)
-
+export
 readers : (cs : List Column) -> NP (\t => String -> Maybe t) (GetTypes cs)
 readers []        = []
 readers (x :: xs) = reader x :: readers xs
@@ -132,7 +132,7 @@ getJoin :  HasIO io
     -> (t1        : Table)
     -> (t2        : Table)    
     -> (cs       : List Column)
-    -> {auto 0 _ : Elems cs ((columns t1)++(columns t2))}
+--    -> {auto 0 _ : Elems cs ((columns t1)++(columns t2))}
     -> (query : Op)
     -> io (List $ GetRow cs)
 getJoin c t1 t2 cs query = do
